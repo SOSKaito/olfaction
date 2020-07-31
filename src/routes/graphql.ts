@@ -483,6 +483,10 @@ export function createGraphQLHandler({ dbPool, repoRoot }: DBContext & RepoRootS
                 type: CommitType,
                 description: 'The commit this code smell was detected in.',
             },
+			changes: {
+                type: GraphQLInt,
+                description: 'Amount of changes to the CodeSmell during its lifespan.',
+            },
         }),
     })
     var { connectionType: CodeSmellConnectionType } = connectionDefinitions({ nodeType: CodeSmellType })
@@ -611,6 +615,9 @@ export function createGraphQLHandler({ dbPool, repoRoot }: DBContext & RepoRootS
             locations: {
                 type: GraphQLList(GraphQLNonNull(LocationInputType)),
                 description: 'Locations of the code smell in the code.',
+            },
+			changes: {
+                type: GraphQLInt,
             },
         },
     })
@@ -1083,6 +1090,9 @@ export function createGraphQLHandler({ dbPool, repoRoot }: DBContext & RepoRootS
         get ordinal(): number {
             return this.codeSmell.ordinal
         }
+		get changes(): number | null{
+			return this.codeSmell.changes
+		}
         async lifespan(args: {}, { loaders }: Context) {
             const lifespan = (await loaders.codeSmellLifespan.oneById.load(this.codeSmell.lifespan))!
             return new CodeSmellLifespanResolver(lifespan)

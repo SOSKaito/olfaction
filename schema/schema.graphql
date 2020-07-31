@@ -118,6 +118,11 @@ type CodeSmell {
   The complete lifespan of this code smell throughout commit history.
   """
   lifespan: CodeSmellLifespan!
+  
+  """
+  Amount of changes this code smell has gone through up to this instance in the Lifespan
+  """
+  changes: Int!
 
   """
   This code smell in a previous commit. This may not be in the direct parent
@@ -190,6 +195,11 @@ input CodeSmellInput {
   Locations of the code smell in the code.
   """
   locations: [LocationInput!]
+  
+  """
+  Amount of changes this code smell has gone through up to this instance in the Lifespan
+  """
+  changes: Int!
 }
 
 """

@@ -81,6 +81,7 @@ export interface CodeSmell {
     locations: Location[]
     lifespan: UUID
     ordinal: number
+	changes: number | null
     commit: GitObjectID
 }
 
@@ -100,6 +101,7 @@ export interface CodeSmellInput {
     kind: string
     message: string | null
     locations: Location[] | null
+	changes: number | null
 }
 
 export interface File {

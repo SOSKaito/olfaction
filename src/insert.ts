@@ -18,7 +18,7 @@ export async function insertCodeSmell(
         repositoryName: string
         commitOid: GitObjectID
     },
-    { kind, message, locations, lifespan, ordinal }: CodeSmellInput,
+    { kind, message, locations, lifespan, ordinal, changes }: CodeSmellInput,
     { db, loaders }: { db: ClientBase; loaders: Loaders }
 ): Promise<CodeSmell> {
     // Normalization
@@ -48,8 +48,8 @@ export async function insertCodeSmell(
     `)
     const result = await db.query<CodeSmell>(sql`
         insert into code_smells
-                    (analysis, repository, kind, "commit", "message", locations, lifespan, ordinal)
-        values      (${analysisId}, ${repositoryName}, ${kind}, ${commitOid}, ${message}, ${locationsJson}::jsonb, ${lifespan}, ${ordinal})
+                    (analysis, repository, kind, "commit", "message", locations, lifespan, ordinal, changes)
+        values      (${analysisId}, ${repositoryName}, ${kind}, ${commitOid}, ${message}, ${locationsJson}::jsonb, ${lifespan}, ${ordinal}, ${changes})
         returning   id
     `)
     const codeSmell: CodeSmell = {
@@ -59,6 +59,7 @@ export async function insertCodeSmell(
         locations,
         lifespan,
         ordinal,
+		changes,
     }
     const codeSmellLifespan: CodeSmellLifespan = {
         id: lifespan,

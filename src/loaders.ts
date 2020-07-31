@@ -49,6 +49,10 @@ export interface KindFilter {
     kind: string | null
 }
 
+export interface ChangesFilter {
+	changes: number | null
+}
+
 export interface DirectoryFilter {
     directory: string | null
 }
@@ -265,6 +269,7 @@ export const createLoaders = ({
                     Partial<AnalysisSpec> &
                     Partial<FileSpec> &
                     KindFilter &
+					ChangesFilter &
                     PathPatternFilter &
                     ForwardConnectionArguments,
                 Connection<CodeSmell>,
@@ -274,7 +279,7 @@ export const createLoaders = ({
                     trace(span, 'loaders.codeSmell.many', async span => {
                         const queries = IterableX.from(specs)
                             .map(
-                                ({ repository, commit, analysis, file, kind, pathPattern, first, after }) => {
+                                ({ repository, commit, analysis, file, kind, pathPattern, first, after, changes }) => {
                                     assert(!first || first >= 0, 'Parameter first must be positive')
                                     const cursor =
                                         (after && parseCursor<CodeSmell>(after, [['id']])) || undefined
@@ -287,6 +292,7 @@ export const createLoaders = ({
                                         analysis: analysis || undefined,
                                         first,
                                         after: cursor && parseInt(cursor.value, 10),
+										changes: changes || undefined,
                                     }
                                 }
                             )
@@ -307,13 +313,14 @@ export const createLoaders = ({
                                             nullif(spec->>'pathPattern', '')::text as "pathPattern",
                                             nullif(spec->>'kind', '')::text as "kind",
                                             nullif(spec->'first', 'null')::int as "first",
-                                            nullif(spec->>'after', '')::int as "after"
+                                            nullif(spec->>'after', '')::int as "after",
+											nullif(spec->>'changes', 'null')::int as "changes"
                                         from rows from (unnest(${specArr}::jsonb[])) with ordinality as spec
                                     )
                                     select json_agg(c order by c.id) as "codeSmells"
                                     from input
                                     left join lateral (
-                                        select "id", "message", "ordinal", "lifespan", "commit", "locations",
+                                        select "id", "message", "ordinal", "lifespan", "commit", "locations", "changes",
                                             jsonb_build_object('id', lifespan, 'repository', repository, 'kind', kind, 'analysis', analysis) as "lifespanObject"
                                         from code_smells
                                         where true
@@ -332,6 +339,9 @@ export const createLoaders = ({
                                 }
                                 if (firstSpec.fileQuery) {
                                     query.append(sql` and code_smells."locations" @> input."fileQuery" `)
+                                }
+								if (firstSpec.changes) {
+                                    query.append(sql` and code_smells."changes" = input."changes" `)
                                 }
                                 if (firstSpec.pathPattern) {
                                     query.append(sql`

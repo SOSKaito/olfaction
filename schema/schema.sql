@@ -70,6 +70,7 @@ CREATE TABLE public.code_smells (
     locations jsonb,
     lifespan uuid NOT NULL,
     ordinal integer NOT NULL,
+	changes integer,
     repository text NOT NULL,
     kind text NOT NULL,
     analysis uuid NOT NULL,
